@@ -10,17 +10,9 @@ def decompose_partition_into_rectangles(p):
     return [(i, list(p).count(i)) for i in reversed(range(max(p)+1)) if i in p]       
 
 # M = (m1, m2, ... )
-# iterate over all tuples of partitions of M
 # this probably doesn't need to be its own function but whatever
 def iterate_over_partition_tuples(M):
     return xmrange_iter([Partitions(u) for u in M])
-
-def rep_dimension(f):
-    d = f.monomial_coefficients()
-    result = 0
-    for mu in d:
-        result += Partition(mu).dimension() * d[mu]
-    return result
 
 def Lie(n):
     result = Sym(0)
@@ -32,18 +24,6 @@ def Lie(n):
 def multiplicity(mu, i):
     return mu.to_exp()[i-1]
 
-def regular_representation(n):
-    result = Sym(0)
-    for llambda in Partitions(n):
-        result += s(llambda) * StandardTableaux(llambda).cardinality()
-    return result
-
-def graded_dimension(rep):
-    result = Sym(0)
-    for (partition, coeff) in rep:
-        result +=  StandardTableaux(partition).cardinality() * coeff
-    return result
-
 def B_coeff(n,j):
     result = 0
     for llambda in Partitions(n):
@@ -51,9 +31,7 @@ def B_coeff(n,j):
             prod = Sym(1)
             for i in range(1, max(llambda)+1):
                 m_i = multiplicity(llambda, i)
-                #print llambda, i, m_i
                 factor = h([m_i]).plethysm(Lie(i))
-                #print llambda, i, m_i, factor
                 prod *= factor
             result += prod
     return result
@@ -104,9 +82,6 @@ def M_compact_supp(n):
         result += coeff * q**(2*(n-1) - i)
     return result
 
-#def OT(n, degree_bound=6):
-#    return M(n).inner_tensor(R(n, degree_bound))
-
 def M_coeff_from_OT(n, i):
     if n == 1:
         if i==0: 
@@ -116,14 +91,14 @@ def M_coeff_from_OT(n, i):
     elif i > n-2:
         return Sym(0)
     else:
-        result = extract_coeff(fake_OT(n), i)
+        result = extract_coeff(low_order_OT(n), i)
         for k in range(1, i+1):
             left_piece = M_coeff_from_OT(n, i-k)
             right_piece = extract_coeff(R(n), k)
             result -= left_piece.inner_tensor(right_piece)
         return result
 
-def fake_OT(n):
+def low_order_OT(n):
     result = Sym(0)
     for llambda in Partitions(n):
         if llambda != Partition([n]):
@@ -139,13 +114,7 @@ def fake_OT(n):
                     left_piece = M_compact_supp(r_i)
                     right_piece = R(r_i)
                     term *= s(mu).plethysm(left_piece.inner_tensor(right_piece))
-                #    print llambda, partition_list, reference_rep.scalar(B_rep), reference_rep, left_piece.inner_tensor(right_piece), "->", term
                 result += term
-
-#            term = Sym(1)
-#            for (r, m) in decompose_partition_into_rectangles(llambda):
-#                term *= B(m).plethysm(R(r).inner_tensor(M_compact_supp(r)))
-#            result += term
     return result
 
     
